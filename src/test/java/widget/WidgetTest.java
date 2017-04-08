@@ -14,7 +14,6 @@ import javax.script.ScriptException;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.function.DoubleConsumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -56,10 +55,9 @@ public class WidgetTest {
             err.println("Bundle keys: " + Lists.newArrayList(bundle.getOwnKeys(false)));
 
             ScriptObjectMirror component = (ScriptObjectMirror) bundle.callMember("component");
-            Function<Object, String> renderToString = (Object it) -> (String) bundle.callMember("renderToStaticMarkup", it);
 
             ArrayList<Double> samples = Lists.newArrayList();
-            Supplier<Object> thunk = () -> renderToString.apply(component);
+            Supplier<Object> thunk = () -> (String) bundle.callMember("renderToStaticMarkup", component);
 
             err.println(format("Thunk result: %s", thunk.get()));
 
