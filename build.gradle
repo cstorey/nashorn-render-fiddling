@@ -1,7 +1,12 @@
 
 plugins {
     id 'java'
+    id 'com.moowork.node' version '1.1.1'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '1.2.4'
 }
+
+mainClassName = "widget.Main"
 
 repositories {
     // Use 'jcenter' for resolving your dependencies.
@@ -13,8 +18,8 @@ repositories {
 dependencies {
     // The production code uses the SLF4J logging API at compile time
     compile 'org.slf4j:slf4j-api:1.7.21'
-    compile 'org.webjars:react:15.3.2'
     compile 'com.google.guava:guava:21.0'
+    compile 'com.coveo:nashorn-commonjs-modules:1.0.4'
 
     // Declare the dependency for your favourite test framework you want to use in your tests.
     // TestNG is also supported by the Gradle Test task. Just change the
@@ -22,3 +27,11 @@ dependencies {
     // 'test.useTestNG()' to your build script.
     testCompile 'junit:junit:4.12'
 }
+
+task webpack(type: NodeTask, dependsOn: 'npmInstall') {
+  script = project.file('node_modules/.bin/webpack')
+}
+ 
+processResources.dependsOn 'webpack'
+ 
+clean.delete << file('src/main/webapp/dist')
