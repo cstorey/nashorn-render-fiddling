@@ -1,6 +1,6 @@
-import ReactDOMServer from 'react-dom/server';
 import React from 'react';
+
+export { renderToStaticMarkup } from 'react-dom/server';
 
 export function component () { return <div>Fnord!</div>; }
 
-export function renderToStaticMarkup(it) { return ReactDOMServer.renderToStaticMarkup(it) };
