@@ -3,7 +3,6 @@ package widget;
 import com.coveo.nashorn_modules.Module;
 import com.coveo.nashorn_modules.Require;
 import com.coveo.nashorn_modules.ResourceFolder;
-import com.google.common.base.Verify;
 import com.google.common.collect.Lists;
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -12,7 +11,6 @@ import org.junit.Test;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.function.DoubleConsumer;
@@ -27,14 +25,15 @@ import static java.lang.System.nanoTime;
 
 public class WidgetTest {
 
-    private static final String DIST_BUNDLE_JS = "/dist/bundle.js";
+    private static final String BUNDLE_JS = "./bundle.js";
+    private static final String JS_DIST_PATH = "dist";
     private ScriptEngine engine = buildEngine();
 
     private ScriptEngine buildEngine() {
         Supplier<NashornScriptEngine> callable = () -> (NashornScriptEngine) new ScriptEngineManager().getEngineByName("nashorn");
         NashornScriptEngine engine = callable.get();
 
-        ResourceFolder rootFolder = ResourceFolder.create(getClass().getClassLoader(), "dist", "UTF-8");
+        ResourceFolder rootFolder = ResourceFolder.create(getClass().getClassLoader(), JS_DIST_PATH, "UTF-8");
         try {
             Require.enable(engine, rootFolder);
         } catch (ScriptException e) {
@@ -44,20 +43,17 @@ public class WidgetTest {
         return engine;
     }
 
-    private DoubleConsumer showTime(String name) {
-        return taken -> err.println(format("%s took %.6fms", name, taken));
-    }
-
     @Test
     public void testWidget() throws ScriptException {
 
         try {
-            Module require = (Module) eval(engine, "require");
+            Module require = (Module) engine.eval("require");
             err.println("Require: " + require);
 
-            ScriptObjectMirror bundle = (ScriptObjectMirror) require.require("./bundle.js");
+            ScriptObjectMirror bundle = (ScriptObjectMirror) require.require(BUNDLE_JS);
 
             err.println("Bundle: " + bundle);
+            err.println("Bundle keys: " + Lists.newArrayList(bundle.getOwnKeys(false)));
 
             ScriptObjectMirror component = (ScriptObjectMirror) bundle.callMember("component");
             Function<Object, String> renderToString = (Object it) -> (String) bundle.callMember("renderToStaticMarkup", it);
@@ -76,12 +72,6 @@ public class WidgetTest {
         }
     }
 
-    private InputStreamReader readResource(String name) {
-        return new InputStreamReader(
-                Verify.verifyNotNull(
-                        getClass().getResourceAsStream(name)));
-    }
-
     private <T> T timeItReal(Supplier<T> callable, DoubleConsumer doubleConsumer) {
         long t0 = nanoTime();
 
@@ -94,19 +84,4 @@ public class WidgetTest {
         return res;
     }
 
-    private Object eval(ScriptEngine engine, InputStreamReader reader) {
-        try {
-            return engine.eval(reader);
-        } catch (ScriptException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Object eval(ScriptEngine engine, String reader) {
-        try {
-            return engine.eval(reader);
-        } catch (ScriptException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
