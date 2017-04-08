@@ -40,15 +40,14 @@ public class WidgetTest {
     public class WidgetVM {
         private final String name;
         private final int num;
+        private ScriptObjectMirror bundle = (ScriptObjectMirror) require.require(BUNDLE_JS);
 
-        public WidgetVM(String name, int num) {
+        public WidgetVM(String name, int num) throws ScriptException {
             this.name = name;
             this.num = num;
         }
 
-        private ScriptObjectMirror render() throws ScriptException {
-            ScriptObjectMirror bundle = (ScriptObjectMirror) require.require(BUNDLE_JS);
-
+        private ScriptObjectMirror render() {
             err.println("Bundle: " + bundle);
             err.println("Bundle keys: " + Lists.newArrayList(bundle.getOwnKeys(false)));
 
