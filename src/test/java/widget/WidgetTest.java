@@ -42,6 +42,25 @@ public class WidgetTest {
         return engine;
     }
 
+    public class WidgetVM {
+        private final String name;
+        private final int num;
+
+        public WidgetVM(String name, int num) {
+
+            this.name = name;
+            this.num = num;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public int getNum() {
+            return num;
+        }
+    }
+
     @Test
     public void testWidget() throws ScriptException {
 
@@ -54,7 +73,8 @@ public class WidgetTest {
             err.println("Bundle: " + bundle);
             err.println("Bundle keys: " + Lists.newArrayList(bundle.getOwnKeys(false)));
 
-            ScriptObjectMirror component = (ScriptObjectMirror) bundle.callMember("component");
+            ScriptObjectMirror component = (ScriptObjectMirror) bundle.callMember("component",
+                    new WidgetVM("frob", 42));
 
             ArrayList<Double> samples = Lists.newArrayList();
             Supplier<Object> thunk = () -> (String) bundle.callMember("renderToStaticMarkup", component);
