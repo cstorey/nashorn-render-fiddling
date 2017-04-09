@@ -6,6 +6,7 @@ import com.coveo.nashorn_modules.ResourceFolder;
 import com.google.common.collect.Lists;
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.script.ScriptEngineManager;
@@ -23,24 +24,31 @@ import static java.lang.System.nanoTime;
 
 public class WidgetTest {
 
-    private static final String BUNDLE_JS = "./bundle.js";
-    private static final String JS_DIST_PATH = "dist";
+    private static final String INDEX_JS = "./index.js";
+    private static final String JS_RESOURCE_PATH = "js";
     private NashornScriptEngine engine = (NashornScriptEngine) new ScriptEngineManager().getEngineByName("nashorn");
     private Module require = buildEngine();
 
     private Module buildEngine() {
-        ResourceFolder rootFolder = ResourceFolder.create(getClass().getClassLoader(), JS_DIST_PATH, "UTF-8");
+        ResourceFolder rootFolder = ResourceFolder.create(getClass().getClassLoader(), JS_RESOURCE_PATH, "UTF-8");
         try {
             return Require.enable(engine, rootFolder);
+
         } catch (ScriptException e) {
             throw new RuntimeException(e);
         }
     }
 
+    @Before
+    public void setupEngine() throws ScriptException {
+        engine.eval("process = {};");
+        engine.eval("process.env = {};");
+    }
+
     public class WidgetVM {
         private final String name;
         private final int num;
-        private ScriptObjectMirror bundle = (ScriptObjectMirror) require.require(BUNDLE_JS);
+        private ScriptObjectMirror bundle = (ScriptObjectMirror) require.require(INDEX_JS);
 
         public WidgetVM(String name, int num) throws ScriptException {
             this.name = name;
@@ -59,9 +67,6 @@ public class WidgetTest {
     @Test
     public void testWidget() throws ScriptException {
         try {
-            Module require = (Module) engine.eval("require");
-            err.println("Require: " + require);
-
             WidgetVM model = new WidgetVM("frob", 42);
             ScriptObjectMirror component = model.render();
             Supplier<Object> thunk = () -> renderComponent(component);
@@ -80,7 +85,7 @@ public class WidgetTest {
 
     private String renderComponent(ScriptObjectMirror component) {
         try {
-            ScriptObjectMirror bundle = (ScriptObjectMirror) require.require(BUNDLE_JS);
+            ScriptObjectMirror bundle = (ScriptObjectMirror) require.require(INDEX_JS);
             return (String) bundle.callMember("renderToStaticMarkup", component);
         } catch (ScriptException e) {
             throw new RuntimeException(e);
